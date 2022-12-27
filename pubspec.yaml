@@ -1,5 +1,5 @@
 name: vsc_quill_delta_to_html
-description: A quill Delta to HTML converter. Ported from the JS library https://www.npmjs.com/package/quill-delta-to-html.
+description: A robust Quill Delta to HTML converter.
 version: 1.0.0+1
 homepage: https://github.com/VisualSystemsCorp/vsc_quill_delta_to_html
 
