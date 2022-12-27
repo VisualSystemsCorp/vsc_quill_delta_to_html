@@ -126,7 +126,7 @@ class _DeltaViewer extends StatefulWidget {
 }
 
 class _DeltaViewerState extends State<_DeltaViewer> {
-  String delta = '';
+  String _delta = '';
 
   @override
   void initState() {
@@ -138,7 +138,7 @@ class _DeltaViewerState extends State<_DeltaViewer> {
   void _onDocumentUpdated() {
     final deltaJson = widget.quillController.document.toDelta().toJson();
     const encoder = JsonEncoder.withIndent('  ');
-    delta = encoder.convert(deltaJson);
+    _delta = encoder.convert(deltaJson);
     setState(() {});
   }
 
@@ -158,7 +158,7 @@ class _DeltaViewerState extends State<_DeltaViewer> {
           Expanded(
             child: Padding(
               padding: const EdgeInsets.all(8.0),
-              child: SingleChildScrollView(child: SelectableText(delta)),
+              child: SingleChildScrollView(child: SelectableText(_delta)),
             ),
           ),
         ],
@@ -180,17 +180,17 @@ class _HtmlViewer extends StatefulWidget {
 }
 
 class _HtmlViewerState extends State<_HtmlViewer> {
-  String html = '';
-  bool previewMode = true;
-  bool isPreviewable = false;
+  String _html = '';
+  bool _previewMode = true;
+  bool _isPreviewable = false;
 
   @override
   void initState() {
     super.initState();
     widget.quillController.addListener(_onDocumentUpdated);
     _onDocumentUpdated();
-    isPreviewable = kIsWeb || Platform.isAndroid || Platform.isIOS;
-    previewMode = isPreviewable;
+    _isPreviewable = kIsWeb || Platform.isAndroid || Platform.isIOS;
+    _previewMode = _isPreviewable;
   }
 
   void _onDocumentUpdated() {
@@ -209,10 +209,10 @@ class _HtmlViewerState extends State<_HtmlViewer> {
       ConverterOptions.forEmail(),
     );
 
-    html = converter.convert();
+    _html = converter.convert();
 
     // Force HTML to layout in a maximum width of 800px.
-    html = '<div style="max-width: 800px;">\n$html\n</div>';
+    _html = '<div style="max-width: 800px;">\n$_html\n</div>';
 
     setState(() {});
   }
@@ -234,9 +234,9 @@ class _HtmlViewerState extends State<_HtmlViewer> {
               const SizedBox(width: 32),
               const Text('Preview:'),
               Switch(
-                value: previewMode,
+                value: _previewMode,
                 onChanged: (value) => setState(() {
-                  previewMode = value;
+                  _previewMode = value;
                 }),
               ),
             ],
@@ -247,11 +247,12 @@ class _HtmlViewerState extends State<_HtmlViewer> {
               padding: const EdgeInsets.all(8.0),
               child: LayoutBuilder(builder: (context, constraints) {
                 Widget viewer;
-                if (previewMode) {
-                  if (isPreviewable) {
+                if (_previewMode) {
+                  if (_isPreviewable) {
                     viewer = WebViewX(
+                      key: ValueKey(_html),
                       initialContent:
-                          '<html><body style="font-family: sans-serif;">$html</body></html>',
+                          '<html><body style="font-family: sans-serif;">$_html</body></html>',
                       initialSourceType: SourceType.html,
                       width: constraints.maxWidth,
                       height: constraints.maxHeight,
@@ -261,7 +262,7 @@ class _HtmlViewerState extends State<_HtmlViewer> {
                         'No HTML preview is available for this platform. Try running for web.');
                   }
                 } else {
-                  viewer = SelectableText(html);
+                  viewer = SelectableText(_html);
                 }
 
                 return SingleChildScrollView(
@@ -556,7 +557,6 @@ const sampleOps = [
     'insert': 'all at styles once',
     'attributes': {
       'bold': true,
-      'code': true,
       'color': '#f44336',
       'italic': true,
       'strike': true,
