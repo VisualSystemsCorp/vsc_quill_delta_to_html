@@ -1,4 +1,5 @@
 import 'package:collection/collection.dart';
+import 'package:meta/meta.dart';
 import 'package:vsc_quill_delta_to_html/src/delta_insert_op.dart';
 import 'package:vsc_quill_delta_to_html/src/funcs_html.dart';
 import 'package:vsc_quill_delta_to_html/src/grouper/group_types.dart';
@@ -68,6 +69,17 @@ class ConverterOptions {
 
 const brTag = '<br/>';
 
+/// Converts [Quill's Delta](https://quilljs.com/docs/delta/) format to HTML (insert ops only) with properly nested lists.
+/// It has full support for Quill operations - including images, videos, formulas, tables, and mentions. Conversion
+/// can be performed in vanilla Dart (i.e., server-side or CLI) or in Flutter.
+///
+/// This is a complete port of the popular [quill-delta-to-html](https://www.npmjs.com/package/quill-delta-to-html)
+/// Typescript/Javascript package to Dart.
+///
+/// This converter can convert to HTML for a number of purposes, not the least of which is for generating
+/// HTML-based emails. It makes a great pairing with [Flutter Quill](https://pub.dev/packages/flutter_quill).
+///
+/// Documentation can be found [here](https://github.com/VisualSystemsCorp/vsc_quill_delta_to_html).
 class QuillDeltaToHtmlConverter {
   QuillDeltaToHtmlConverter(this._rawDeltaOps, [ConverterOptions? options]) {
     _options = options ?? ConverterOptions();
@@ -98,6 +110,7 @@ class QuillDeltaToHtmlConverter {
               callback) =>
       _renderCustomWithCallback = callback;
 
+  @visibleForTesting
   String getListTag(DeltaInsertOp op) {
     if (op.isOrderedList()) return _options.orderedListTag.toString();
     if (op.isBulletList()) return _options.bulletListTag.toString();
@@ -127,6 +140,7 @@ class QuillDeltaToHtmlConverter {
     return ListNester().nest(groupedOps);
   }
 
+  /// Convert the Delta ops provided at construction to an HTML string.
   String convert() {
     final groups = getGroupedOps();
     return groups.map((group) {
@@ -224,6 +238,7 @@ class QuillDeltaToHtmlConverter {
         makeEndTag('td');
   }
 
+  @visibleForTesting
   String renderBlock(DeltaInsertOp bop, List<DeltaInsertOp> ops) {
     final converter = OpToHtmlConverter(bop, _converterOptions);
     final htmlParts = converter.getHtmlParts();
@@ -244,6 +259,7 @@ class QuillDeltaToHtmlConverter {
         htmlParts.closingTag;
   }
 
+  @visibleForTesting
   String renderInlines(List<DeltaInsertOp> ops, [bool isInlineGroup = true]) {
     final opsLen = ops.length - 1;
     final html = ops.mapIndexed((i, op) {

@@ -1,3 +1,5 @@
+import 'package:meta/meta.dart';
+
 import 'delta_insert_op.dart';
 import 'funcs_html.dart';
 import 'helpers/array.dart' as arr;
@@ -101,14 +103,16 @@ class HtmlParts {
   final String closingTag;
 }
 
+/// Converts a single Delta op to HTML.
 class OpToHtmlConverter {
-  late final OpConverterOptions options;
-  final DeltaInsertOp op;
-
   OpToHtmlConverter(this.op, [OpConverterOptions? options]) {
     this.options = options ?? OpConverterOptions();
   }
 
+  late final OpConverterOptions options;
+  final DeltaInsertOp op;
+
+  @visibleForTesting
   String prefixClass(String className) {
     if (!isTruthy(options.classPrefix)) {
       return className;
