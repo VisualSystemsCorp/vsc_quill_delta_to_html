@@ -1,6 +1,6 @@
 name: vsc_quill_delta_to_html
 description: A robust Quill Delta to HTML converter.
-version: 1.0.0+1
+version: 1.0.1
 homepage: https://github.com/VisualSystemsCorp/vsc_quill_delta_to_html
 
 environment:
