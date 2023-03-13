@@ -1,7 +1,7 @@
+import 'package:test/test.dart';
 import 'package:vsc_quill_delta_to_html/src/mentions/mention_sanitizer.dart';
 import 'package:vsc_quill_delta_to_html/src/op_attribute_sanitizer.dart';
 import 'package:vsc_quill_delta_to_html/src/value_types.dart';
-import 'package:test/test.dart';
 
 void main() {
   group('OpAttributeSanitizer', () {
@@ -194,6 +194,15 @@ void main() {
             {
               'indent': 2,
             });
+      });
+
+      test('OpAttributes size and width should handle numerics', () {
+        expect((OpAttributes()..['size'] = 8.0).size, '8.0');
+        expect((OpAttributes()..['width'] = 8.0).width, '8.0');
+        expect((OpAttributes()..['size'] = 42).size, '42');
+        expect((OpAttributes()..['width'] = 42).width, '42');
+        expect((OpAttributes()..['size'] = 'small').size, 'small');
+        expect((OpAttributes()..['width'] = 'wide').width, 'wide');
       });
     });
   });

@@ -73,12 +73,17 @@ class OpAttributes {
   String? get font => attrs['font'];
   set font(String? v) => v == null ? attrs.remove('font') : attrs['font'] = v;
 
-  String? get size => attrs['size'];
+  String? get size => _getSizeAsString('size');
   set size(String? v) => v == null ? attrs.remove('size') : attrs['size'] = v;
 
-  String? get width => attrs['width'];
+  String? get width => _getSizeAsString('width');
   set width(String? v) =>
       v == null ? attrs.remove('width') : attrs['width'] = v;
+
+  String? _getSizeAsString(String attrName) {
+    final size = attrs[attrName];
+    return size is! String? ? size.toString() : size;
+  }
 
   String? get link => attrs['link'];
   set link(String? v) => v == null ? attrs.remove('link') : attrs['link'] = v;
