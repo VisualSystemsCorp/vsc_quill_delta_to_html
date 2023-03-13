@@ -1,6 +1,6 @@
 name: vsc_quill_delta_to_html
 description: A robust Quill Delta to HTML converter. This is a complete port of the popular quill-delta-to-html Typescript/Javascript package to Dart.
-version: 1.0.1+1
+version: 1.0.2
 homepage: https://github.com/VisualSystemsCorp/vsc_quill_delta_to_html
 
 environment:
