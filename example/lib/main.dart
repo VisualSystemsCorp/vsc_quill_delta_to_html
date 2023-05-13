@@ -252,7 +252,7 @@ class _HtmlViewerState extends State<_HtmlViewer> {
                     viewer = WebViewX(
                       key: ValueKey(_html),
                       initialContent:
-                          '<html><body style="font-family: sans-serif;">$_html</body></html>',
+                          '<html lang="en"><body style="font-family: sans-serif;">$_html</body></html>',
                       initialSourceType: SourceType.html,
                       width: constraints.maxWidth,
                       height: constraints.maxHeight,
@@ -348,7 +348,7 @@ class _ImageEmbedBuilder extends EmbedBuilder {
 
   @override
   Widget build(BuildContext context, QuillController controller, Embed node,
-      bool readOnly) {
+      bool readOnly, bool inline) {
     final url = node.value.data as String;
     final image = Image.network(
       url,

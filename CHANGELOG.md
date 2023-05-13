@@ -1,3 +1,7 @@
+## 1.0.3
+
+- Flutter 3.10.0/Dart 3 upgrade.
+
 ## 1.0.2
 
 - If you give `flutter_quill` font sizes that are numeric strings, like `'8.0'`, it
