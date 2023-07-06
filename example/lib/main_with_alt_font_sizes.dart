@@ -366,7 +366,7 @@ class _ImageEmbedBuilder extends EmbedBuilder {
 
   @override
   Widget build(BuildContext context, QuillController controller, Embed node,
-      bool readOnly, bool inline) {
+      bool readOnly, bool inline, TextStyle style) {
     final url = node.value.data as String;
     final image = Image.network(
       url,
