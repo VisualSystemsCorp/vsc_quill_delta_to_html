@@ -1,0 +1,17 @@
+[
+  {
+    "insert": "colored word",
+    "attributes": {
+      "color": "rgb(239,39,4)"
+    }
+  },
+  {
+    "insert": " word"
+  },
+  {
+    "insert": "another colored word",
+    "attributes": {
+      "color": "rgb(239,39,4)"
+    }
+  }
+]
