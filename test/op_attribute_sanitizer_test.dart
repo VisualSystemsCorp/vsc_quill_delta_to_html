@@ -11,6 +11,9 @@ void main() {
         expect(OpAttributeSanitizer.isValidHexColor('#f23'), true);
         expect(OpAttributeSanitizer.isValidHexColor('#fFe234'), true);
         expect(OpAttributeSanitizer.isValidHexColor('#g34'), false);
+        expect(OpAttributeSanitizer.isValidHexColor('#fFe234a5'), true);
+        expect(OpAttributeSanitizer.isValidHexColor('#fFe234b'), false);
+        expect(OpAttributeSanitizer.isValidHexColor('#aabb'), false);
 
         expect(OpAttributeSanitizer.isValidHexColor('e34'), false);
         expect(OpAttributeSanitizer.isValidHexColor('123434'), false);
@@ -69,6 +72,24 @@ void main() {
         expect(OpAttributeSanitizer.isValidRGBColor('rgb(2000,0,0)'), false);
       });
     });
+
+    group('#IsValidRGBColor()', () {
+      test('should return true if rgba color is valid', () {
+        expect(OpAttributeSanitizer.isValidRGBAColor('rgba(0,0,0, 0)'), true);
+        expect(OpAttributeSanitizer.isValidRGBAColor('rgba(255, 99, 55, 1)'),
+            true);
+        expect(
+            OpAttributeSanitizer.isValidRGBAColor('RGBA(254, 249, 109, 0.25)'),
+            true);
+        expect(OpAttributeSanitizer.isValidRGBAColor('yellow'), false);
+        expect(OpAttributeSanitizer.isValidRGBAColor('#FFF'), false);
+        expect(OpAttributeSanitizer.isValidRGBAColor('rgba(256,0,0,0)'), false);
+        expect(OpAttributeSanitizer.isValidRGBAColor('rgba(0,0,0,1.5)'), false);
+        expect(
+            OpAttributeSanitizer.isValidRGBAColor('rgba(2000,0,0,0.5)'), false);
+      });
+    });
+
     group('#IsValidRel()', () {
       test('should return true if rel is valid', () {
         expect(OpAttributeSanitizer.isValidRel('nofollow'), true);
@@ -193,6 +214,49 @@ void main() {
                 .attrs,
             {
               'indent': 2,
+            });
+
+        expect(
+            OpAttributeSanitizer.sanitize(OpAttributes()..color = '#112233',
+                    OpAttributeSanitizerOptions())
+                .attrs,
+            {
+              'color': '#112233',
+            });
+
+        expect(
+            OpAttributeSanitizer.sanitize(OpAttributes()..color = '#FF112233',
+                    OpAttributeSanitizerOptions())
+                .attrs,
+            {
+              'color': '#112233FF',
+            });
+
+        expect(
+            OpAttributeSanitizer.sanitize(
+                OpAttributes()..color = '#FF112233',
+                OpAttributeSanitizerOptions(
+                  argbHexColors: false,
+                )).attrs,
+            {
+              'color': '#FF112233',
+            });
+
+        expect(
+            OpAttributeSanitizer.sanitize(
+                    OpAttributes()..background = '#FF112233',
+                    OpAttributeSanitizerOptions())
+                .attrs,
+            {
+              'background': '#112233FF',
+            });
+
+        expect(
+            OpAttributeSanitizer.sanitize(OpAttributes()..color = 'rgba(255, 99, 71, 0.5)',
+                    OpAttributeSanitizerOptions())
+                .attrs,
+            {
+              'color': 'rgba(255, 99, 71, 0.5)',
             });
       });
 

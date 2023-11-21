@@ -199,9 +199,10 @@ class OpAttributes {
 typedef UrlSanitizerFn = String? Function(String url);
 
 class OpAttributeSanitizerOptions {
-  OpAttributeSanitizerOptions({this.urlSanitizer});
+  OpAttributeSanitizerOptions({this.urlSanitizer, this.argbHexColors = true});
 
   UrlSanitizerFn? urlSanitizer;
+  bool argbHexColors;
 }
 
 class OpAttributeSanitizer {
@@ -273,11 +274,20 @@ class OpAttributeSanitizer {
 
     for (var prop in colorAttrs) {
       final val = dirtyAttrs[prop];
-      if (isTruthy(val) &&
-          (OpAttributeSanitizer.isValidHexColor(val.toString()) ||
-              OpAttributeSanitizer.isValidColorLiteral(val.toString()) ||
-              OpAttributeSanitizer.isValidRGBColor(val.toString()))) {
-        cleanAttrs[prop] = val;
+      if (isTruthy(val)) {
+        if (OpAttributeSanitizer.isValidColorLiteral(val.toString()) ||
+            OpAttributeSanitizer.isValidRGBColor(val.toString()) ||
+            OpAttributeSanitizer.isValidRGBAColor(val.toString())) {
+          cleanAttrs[prop] = val;
+        }
+        if (OpAttributeSanitizer.isValidHexColor(val.toString())) {
+          if (sanitizeOptions.argbHexColors && val.toString().length == 9) {
+            cleanAttrs[prop] =
+                '#${val.toString().substring(3)}${val.toString().substring(1, 3)}';
+          } else {
+            cleanAttrs[prop] = val;
+          }
+        }
       }
     }
 
@@ -366,7 +376,8 @@ class OpAttributeSanitizer {
   }
 
   static bool isValidHexColor(String colorStr) {
-    return RegExp(r'^#([0-9A-F]{6}|[0-9A-F]{3})$', caseSensitive: false)
+    return RegExp(r'^#([0-9A-F]{6}|[0-9A-F]{3}|[0-9A-F]{8})$',
+            caseSensitive: false)
         .hasMatch(colorStr);
   }
 
@@ -377,6 +388,13 @@ class OpAttributeSanitizer {
   static bool isValidRGBColor(String colorStr) {
     final re = RegExp(
         r'^rgb\(((0|25[0-5]|2[0-4]\d|1\d\d|0?\d?\d),\s*){2}(0|25[0-5]|2[0-4]\d|1\d\d|0?\d?\d)\)$',
+        caseSensitive: false);
+    return re.hasMatch(colorStr);
+  }
+
+  static bool isValidRGBAColor(String colorStr) {
+    final re = RegExp(
+        r'^rgba\(((0|25[0-5]|2[0-4]\d|1\d\d|0?\d?\d),\s*){3}((0(\.\d+)?|1(\.0+)?))\)$',
         caseSensitive: false);
     return re.hasMatch(colorStr);
   }
