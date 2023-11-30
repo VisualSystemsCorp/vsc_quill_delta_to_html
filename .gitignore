@@ -10,3 +10,9 @@ doc/api
 # https://dart.dev/guides/libraries/private-files#pubspeclock.
 pubspec.lock
 /.idea/
+
+# IntelliJ related
+*.iml
+*.ipr
+*.iws
+.idea/
