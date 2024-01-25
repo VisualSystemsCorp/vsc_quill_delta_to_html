@@ -25,7 +25,7 @@ const ops = [
   {
     'insert': {
       'image':
-          'https://upload.wikimedia.org/wikipedia/commons/e/e0/Tc_logo_magyar_logo.png'
+          'https://upload.wikimedia.org/wikipedia/commons/b/be/Logo_Thumbnail.jpg'
     }
   },
   {

@@ -1,12 +1,15 @@
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:example/config.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_quill/flutter_quill.dart' hide Text;
+import 'package:flutter_quill/flutter_quill.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:vsc_quill_delta_to_html/vsc_quill_delta_to_html.dart';
 import 'package:webviewx_plus/webviewx_plus.dart';
+
+import 'flutter_quill_utils.dart';
 
 void main() {
   runApp(const MyApp());
@@ -53,7 +56,7 @@ class _MyHomePageState extends State<MyHomePage> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
+    final editorAndToolbar = Scaffold(
       appBar: AppBar(
         title: const Text(title),
       ),
@@ -61,19 +64,37 @@ class _MyHomePageState extends State<MyHomePage> {
         mainAxisAlignment: MainAxisAlignment.start,
         mainAxisSize: MainAxisSize.max,
         children: [
-          QuillToolbar.basic(
-            controller: quillController,
-            showSearchButton: false,
-            embedButtons: [
-              (_, toolbarIconSize, iconTheme, __) => _ImageToolbarButton(
-                    quillController: quillController,
-                    focusNode: focusNode,
-                    toolbarIconSize: toolbarIconSize,
-                    iconTheme: iconTheme,
-                  ),
-            ],
-            showAlignmentButtons: true,
-            afterButtonPressed: focusNode.requestFocus,
+          QuillBaseToolbar(
+            configurations: QuillBaseToolbarConfigurations(
+              toolbarIconAlignment: WrapAlignment.start,
+              childrenBuilder: (context) {
+                final controller = quillController;
+                return [
+                  createQuillUndoButton(controller),
+                  createQuillRedoButton(controller),
+                  createQuillFontFamilyButton(controller),
+                  createQuillFontSizeButton(controller),
+                  createQuillBoldButton(controller),
+                  createQuillItalicButton(controller),
+                  createQuillUnderlineButton(controller),
+                  createQuillStrikeThroughButton(controller),
+                  createQuillSimpleTextColorPickerButton(controller),
+                  createQuillSimpleBackgroundColorPickerButton(controller),
+                  createQuillClearFormatButton(controller),
+                  _ImageToolbarButton(quillController: quillController),
+                  createQuillLinkButton(controller),
+                  createQuillSelectAlignmentButtons(controller),
+                  createQuillSelectHeaderStyleButtons(controller),
+                  createQuillNumberedListButton(controller),
+                  createQuillBulletListButton(controller),
+                  createQuillCheckedListButton(controller),
+                  createQuillCodeBlockButton(controller),
+                  createQuillBlockQuoteButton(controller),
+                  createQuillIncreaseIndentButton(controller),
+                  createQuillDecreaseIndentButton(controller),
+                ];
+              },
+            ),
           ),
           const Divider(height: 8, thickness: 1),
           SizedBox(
@@ -108,6 +129,20 @@ class _MyHomePageState extends State<MyHomePage> {
             ),
           ),
         ],
+      ),
+    );
+
+    return QuillProvider(
+      configurations: QuillConfigurations(
+        controller: quillController,
+        sharedConfigurations: const QuillSharedConfigurations(),
+      ),
+      child: QuillToolbarProvider(
+        toolbarConfigurations: const QuillToolbarConfigurations(),
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(8, 12, 8, 8),
+          child: editorAndToolbar,
+        ),
       ),
     );
   }
@@ -204,10 +239,29 @@ class _HtmlViewerState extends State<_HtmlViewer> {
 
   void _onDocumentUpdatedOrThrow() {
     final deltaJson = widget.quillController.document.toDelta().toJson();
-    final converter = QuillDeltaToHtmlConverter(
-      List.castFrom(deltaJson),
-      ConverterOptions.forEmail(),
-    );
+
+    final QuillDeltaToHtmlConverter converter;
+    if (useCustomFontSizes) {
+      converter = QuillDeltaToHtmlConverter(
+        List.castFrom(deltaJson),
+        ConverterOptions(
+          converterOptions: OpConverterOptions(
+            inlineStylesFlag: true,
+            inlineStyles: InlineStyles({
+              ...defaultInlineStyles.attrs,
+              'size': InlineStyleType(
+                fn: (value, _) => 'font-size: ${value}px',
+              ),
+            }),
+          ),
+        ),
+      );
+    } else {
+      converter = QuillDeltaToHtmlConverter(
+        List.castFrom(deltaJson),
+        ConverterOptions.forEmail(),
+      );
+    }
 
     _html = converter.convert();
 
@@ -304,26 +358,27 @@ class _EditorState extends State<_Editor> {
   Widget build(BuildContext context) {
     return MouseRegion(
       cursor: SystemMouseCursors.text,
-      child: QuillEditor(
-        controller: widget.quillController,
+      child: QuillEditor.basic(
         focusNode: widget.focusNode,
         scrollController: scrollController,
-        scrollable: true,
-        padding: EdgeInsets.only(
-          left: 16,
-          right: 16,
-          top: 16,
-          bottom: MediaQuery.of(context).padding.bottom,
+        configurations: QuillEditorConfigurations(
+          scrollable: true,
+          padding: EdgeInsets.only(
+            left: 16,
+            right: 16,
+            top: 16,
+            bottom: MediaQuery.of(context).padding.bottom,
+          ),
+          onLaunchUrl: _launchUrl,
+          autoFocus: false,
+          // On mobile, overlays the selection, so don't use it.
+          enableSelectionToolbar: false,
+          expands: false,
+          maxContentWidth: 800,
+          embedBuilders: [
+            _ImageEmbedBuilder(800),
+          ],
         ),
-        onLaunchUrl: _launchUrl,
-        autoFocus: false,
-        enableSelectionToolbar: true,
-        expands: false,
-        maxContentWidth: 800,
-        embedBuilders: [
-          _ImageEmbedBuilder(800),
-        ],
-        readOnly: false,
       ),
     );
   }
@@ -374,33 +429,19 @@ class _ImageToolbarButton extends StatelessWidget {
   const _ImageToolbarButton({
     Key? key,
     required this.quillController,
-    required this.focusNode,
-    required this.toolbarIconSize,
-    required this.iconTheme,
   }) : super(key: key);
 
   final QuillController quillController;
-  final FocusNode focusNode;
-  final double toolbarIconSize;
-  final QuillIconTheme? iconTheme;
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final iconColor = iconTheme?.iconUnselectedColor ?? theme.iconTheme.color;
-    final iconFillColor =
-        iconTheme?.iconUnselectedFillColor ?? theme.canvasColor;
-
-    return QuillIconButton(
-      icon: Icon(Icons.image, size: toolbarIconSize, color: iconColor),
-      highlightElevation: 0,
-      hoverElevation: 0,
-      size: toolbarIconSize * 1.77,
-      fillColor: iconFillColor,
-      borderRadius: iconTheme?.borderRadius ?? 2,
-      afterPressed: () => focusNode.requestFocus(),
-      onPressed: () => _onPressed(context),
-    );
+    return QuillToolbarCustomButton(
+        options: QuillToolbarCustomButtonOptions(
+          icon: const Icon(Icons.image),
+          iconSize: kDefaultIconSize,
+          onPressed: () => _onPressed(context),
+        ),
+        controller: quillController);
   }
 
   Future<void> _onPressed(BuildContext context) async {
@@ -408,28 +449,30 @@ class _ImageToolbarButton extends StatelessWidget {
     await showDialog(
       context: context,
       builder: (BuildContext context) {
-        return AlertDialog(
-          title: const Text('Paste an Image Link (URL)'),
-          content: TextField(
-            controller: textController,
-            decoration: const InputDecoration(labelText: 'Image link (URL)'),
-            autofocus: true,
+        return WebViewAware(
+          child: AlertDialog(
+            title: const Text('Paste an Image Link (URL)'),
+            content: TextField(
+              controller: textController,
+              decoration: const InputDecoration(labelText: 'Image link (URL)'),
+              autofocus: true,
+            ),
+            actions: [
+              TextButton(
+                child: const Text('Cancel'),
+                onPressed: () => Navigator.pop(context),
+              ),
+              TextButton(
+                child: const Text('Insert'),
+                onPressed: () async {
+                  Navigator.pop(context);
+                  final url = textController.text.trim();
+                  if (url.isEmpty) return;
+                  _insertImageIntoDocument(url);
+                },
+              ),
+            ],
           ),
-          actions: [
-            TextButton(
-              child: const Text('Cancel'),
-              onPressed: () => Navigator.pop(context),
-            ),
-            TextButton(
-              child: const Text('Insert'),
-              onPressed: () async {
-                Navigator.pop(context);
-                final url = textController.text.trim();
-                if (url.isEmpty) return;
-                _insertImageIntoDocument(url);
-              },
-            ),
-          ],
         );
       },
     );
@@ -479,14 +522,14 @@ const sampleOps = [
   {
     'insert': {
       'image':
-          'https://upload.wikimedia.org/wikipedia/commons/e/e0/Tc_logo_magyar_logo.png'
+          'https://upload.wikimedia.org/wikipedia/commons/b/be/Logo_Thumbnail.jpg'
     }
   },
   {'insert': '\n\n'},
   {
     'insert': {
       'image':
-          'https://upload.wikimedia.org/wikipedia/commons/e/e0/Tc_logo_magyar_logo.png'
+          'https://upload.wikimedia.org/wikipedia/commons/b/be/Logo_Thumbnail.jpg'
     }
   },
   {
@@ -496,7 +539,7 @@ const sampleOps = [
   {
     'insert': {
       'image':
-          'https://upload.wikimedia.org/wikipedia/commons/e/e0/Tc_logo_magyar_logo.png'
+          'https://upload.wikimedia.org/wikipedia/commons/b/be/Logo_Thumbnail.jpg'
     }
   },
   {
