@@ -11,6 +11,9 @@ void main() {
         expect(OpAttributeSanitizer.isValidHexColor('#f23'), true);
         expect(OpAttributeSanitizer.isValidHexColor('#fFe234'), true);
         expect(OpAttributeSanitizer.isValidHexColor('#g34'), false);
+        expect(OpAttributeSanitizer.isValidHexColor('#fFe234a5'), true);
+        expect(OpAttributeSanitizer.isValidHexColor('#fFe234b'), false);
+        expect(OpAttributeSanitizer.isValidHexColor('#aabb'), false);
 
         expect(OpAttributeSanitizer.isValidHexColor('e34'), false);
         expect(OpAttributeSanitizer.isValidHexColor('123434'), false);
@@ -193,6 +196,45 @@ void main() {
                 .attrs,
             {
               'indent': 2,
+            });
+
+        expect(
+            OpAttributeSanitizer.sanitize(OpAttributes()..color = '#112233',
+                    OpAttributeSanitizerOptions())
+                .attrs,
+            {
+              'color': '#112233',
+            });
+
+        expect(
+            OpAttributeSanitizer.sanitize(OpAttributes()..color = '#FF112233',
+                    OpAttributeSanitizerOptions(allow8DigitHexColors: true))
+                .attrs,
+            {
+              'color': '#112233FF',
+            });
+
+        expect(
+            OpAttributeSanitizer.sanitize(OpAttributes()..color = '#FF112233',
+                    OpAttributeSanitizerOptions())
+                .attrs,
+            {});
+
+        expect(
+            OpAttributeSanitizer.sanitize(
+                    OpAttributes()..background = '#FF112233',
+                    OpAttributeSanitizerOptions(allow8DigitHexColors: true))
+                .attrs,
+            {
+              'background': '#112233FF',
+            });
+
+        expect(
+            OpAttributeSanitizer.sanitize(OpAttributes()..color = '#12A',
+                    OpAttributeSanitizerOptions())
+                .attrs,
+            {
+              'color': '#12A',
             });
       });
 
