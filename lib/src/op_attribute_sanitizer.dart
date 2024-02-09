@@ -199,9 +199,13 @@ class OpAttributes {
 typedef UrlSanitizerFn = String? Function(String url);
 
 class OpAttributeSanitizerOptions {
-  OpAttributeSanitizerOptions({this.urlSanitizer});
+  OpAttributeSanitizerOptions({
+    this.urlSanitizer,
+    this.allow8DigitHexColors = false,
+  });
 
   UrlSanitizerFn? urlSanitizer;
+  bool allow8DigitHexColors;
 }
 
 class OpAttributeSanitizer {
@@ -273,11 +277,21 @@ class OpAttributeSanitizer {
 
     for (var prop in colorAttrs) {
       final val = dirtyAttrs[prop];
-      if (isTruthy(val) &&
-          (OpAttributeSanitizer.isValidHexColor(val.toString()) ||
-              OpAttributeSanitizer.isValidColorLiteral(val.toString()) ||
-              OpAttributeSanitizer.isValidRGBColor(val.toString()))) {
-        cleanAttrs[prop] = val;
+      if (isTruthy(val)) {
+        if (OpAttributeSanitizer.isValidColorLiteral(val.toString()) ||
+            OpAttributeSanitizer.isValidRGBColor(val.toString())) {
+          cleanAttrs[prop] = val;
+        }
+        if (OpAttributeSanitizer.isValidHexColor(val.toString())) {
+          if (val.toString().length == 9) {
+            if (sanitizeOptions.allow8DigitHexColors) {
+              cleanAttrs[prop] =
+                  '#${val.toString().substring(3)}${val.toString().substring(1, 3)}';
+            }
+          } else {
+            cleanAttrs[prop] = val;
+          }
+        }
       }
     }
 
@@ -366,7 +380,8 @@ class OpAttributeSanitizer {
   }
 
   static bool isValidHexColor(String colorStr) {
-    return RegExp(r'^#([0-9A-F]{6}|[0-9A-F]{3})$', caseSensitive: false)
+    return RegExp(r'^#([0-9A-F]{6}|[0-9A-F]{3}|[0-9A-F]{8})$',
+            caseSensitive: false)
         .hasMatch(colorStr);
   }
 
