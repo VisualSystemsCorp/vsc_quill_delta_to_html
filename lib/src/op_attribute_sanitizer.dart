@@ -402,7 +402,7 @@ class OpAttributeSanitizer {
   }
 
   static bool isValidSize(String size) {
-    return RegExp(r'^[a-z0-9\-]{1,20}$', caseSensitive: false).hasMatch(size);
+    return RegExp(r'^[a-z0-9\-.]{1,20}$', caseSensitive: false).hasMatch(size);
   }
 
   static bool isValidWidth(String width) {
