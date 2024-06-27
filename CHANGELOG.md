@@ -1,3 +1,7 @@
+## 1.0.5
+
+- @windows7lake Fixed: flutter_quill: 9.4.1 custom font size and convert to html, will loose font size #20.
+
 ## 1.0.4
 
 - Updated example to use a simplified color picker.
