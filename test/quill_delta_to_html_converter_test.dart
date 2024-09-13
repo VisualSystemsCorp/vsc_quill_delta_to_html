@@ -1,10 +1,10 @@
+import 'package:test/test.dart';
 import 'package:vsc_quill_delta_to_html/src/delta_insert_op.dart';
 import 'package:vsc_quill_delta_to_html/src/grouper/group_types.dart';
 import 'package:vsc_quill_delta_to_html/src/op_attribute_sanitizer.dart';
 import 'package:vsc_quill_delta_to_html/src/op_to_html_converter.dart';
 import 'package:vsc_quill_delta_to_html/src/quill_delta_to_html_converter.dart';
 import 'package:vsc_quill_delta_to_html/src/value_types.dart';
-import 'package:test/test.dart';
 
 import 'data/delta1.dart';
 import 'data/html_email_meta_delta_and_html.dart';
@@ -172,6 +172,10 @@ void main() {
             'insert': {'image': 'http://yahoo.com/def.jpg'},
             'attributes': {'link': 'http://aha'},
           },
+          {
+            'insert': {'image': 'http://yahoo.com/abc.jpg'},
+            'attributes': {'width': 100, 'height': 200},
+          },
         ];
         final qdc = QuillDeltaToHtmlConverter(ops);
         final html = qdc.convert();
@@ -182,6 +186,7 @@ void main() {
             '<a href="http://aha" target="_blank">'
             '<img class="ql-image" src="http://yahoo.com/def.jpg"/>'
             '</a>'
+            '<img class="ql-image" width="100" src="http://yahoo.com/abc.jpg"/>'
             '</p>');
       });
 
