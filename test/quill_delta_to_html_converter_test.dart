@@ -174,7 +174,7 @@ void main() {
           },
           {
             'insert': {'image': 'http://yahoo.com/abc.jpg'},
-            'attributes': {'width': 100, 'height': 200},
+            'attributes': {'width': 100},
           },
         ];
         final qdc = QuillDeltaToHtmlConverter(ops);
