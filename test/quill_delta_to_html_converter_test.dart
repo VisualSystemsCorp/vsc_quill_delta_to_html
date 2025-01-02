@@ -1,6 +1,7 @@
 import 'package:test/test.dart';
 import 'package:vsc_quill_delta_to_html/src/delta_insert_op.dart';
 import 'package:vsc_quill_delta_to_html/src/grouper/group_types.dart';
+import 'package:vsc_quill_delta_to_html/src/helpers/js.dart';
 import 'package:vsc_quill_delta_to_html/src/op_attribute_sanitizer.dart';
 import 'package:vsc_quill_delta_to_html/src/op_to_html_converter.dart';
 import 'package:vsc_quill_delta_to_html/src/quill_delta_to_html_converter.dart';
@@ -1033,6 +1034,34 @@ void main() {
         qdc = QuillDeltaToHtmlConverter([ops[0], ops[1]]);
         html = qdc.convert();
         expect(html, '<p>line 1</p>');
+      });
+
+      test('test custom line height attribute', () {
+        final ops = [
+          {
+            'insert': 'line 1',
+            'attributes': {
+              'lineHeight': '14px',
+            },
+          },
+        ];
+
+        var qdc = QuillDeltaToHtmlConverter(
+          ops,
+          ConverterOptions(
+            converterOptions: OpConverterOptions(
+              customCssStyles: (op) {
+                if (isTruthy(op.attributes['lineHeight'])) {
+                  return ['line-height:${op.attributes['lineHeight']}'];
+                }
+                return null;
+              },
+            ),
+          ),
+        );
+
+        var html = qdc.convert();
+        expect(html, r'<p><span style="line-height:14px">line 1</span></p>');
       });
 
       group('before n after renders()', () {
